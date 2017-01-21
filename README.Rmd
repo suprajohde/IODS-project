@@ -1,6 +1,5 @@
 ---
-title: "IODS course project"
-author: "Tiina Autio"
+title: "IODS Course"
 output:
   html_document:
     theme: yeti
@@ -12,14 +11,6 @@ output:
     code_folding: hide
 ---
 
-***
-  
-```{r child = "chapter1.Rmd"}
-```
-  
-***
-  
-```{r child = "chapter2.Rmd"}
-```
+Course page and description:
 
-***
+https://courses.helsinki.fi/fi/78995/115961424
