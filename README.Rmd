@@ -1,8 +1,12 @@
----
-title: "IODS Course"
-author: Tiina Autio
----
 
-Course page and description:
+# IODS Course
+_Tiina_ _Autio_
 
++ Course page and description:
 https://courses.helsinki.fi/fi/78995/115961424
+
++ Course diary:
+https://suprajohde.github.io/IODS-project/
+
++ Github repository:
+https://github.com/suprajohde/IODS-project
