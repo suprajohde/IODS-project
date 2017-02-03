@@ -1,7 +1,16 @@
-# Insert chapter 2 title here
 
-*Describe the work you have done this week and summarize your learning.*
+## Analysis of the students2014 data
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+
+Students2014 is a subset of data that has been collected from the students of Introduction to Social Statistics course during fall 2014. The original data had 183 responses and various . This subset has 166 responses and seven variables (no missing values):  
+  * gender: male (M) or female (F)  
+  * age: years  
+  * attitude: global attitude toward statistics  
+  * deep: mean value for questions that measure deep learning  
+  * stra: mean value for questions that measure strategic learning  
+  * surf:  mean value for questions that measure surface learning  
+  * points: exam points  
+
+
+Sources:
+[1] http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt
