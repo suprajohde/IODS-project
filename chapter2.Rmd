@@ -11,6 +11,40 @@ Students2014 is a subset of data that has been collected from the students of In
   * surf:  mean value for questions that measure surface learning  
   * points: exam points  
 
+```{r}
+learning2014 <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/learning2014.txt", sep=",", header=TRUE)
+
+## analysing data dimensions and structure of the original data
+dim(learning2014)
+str(learning2014)
+
+
+## Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (3 points)
+library(ggplot2)
+library(GGally)
+
+
+## graphical overview based on gender
+pairs(learning2014[-1], col=learning2014$gender)
+
+## summary
+summary(learning2014)
+
+p <- ggpairs(learning2014, mapping = aes(col=gender, alpha=0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+my_model <- lm(points ~ attitude , data = learning2014)
+my_model <- lm(points ~ attitude + stra + deep, data = learning2014)
+summary(my_model)
+
+p1 <- ggplot(learning2014, aes(x = attitude, y = points, col=gender))
+
+## printing three plots in one
+my_model2 <- lm(points ~ attitude + stra + deep, data = learning2014)
+par(mfrow = c(2,2))
+plot(my_model2, c(1, 2, 5))
+
+```
 
 Sources:
 [1] http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt
