@@ -1,0 +1,151 @@
+---
+title: "chapter3"
+author: "Tiina Autio"
+date: "2/10/2017"
+output: html_document
+---
+
+# Analysis of Student Alcohol consumption
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let's take a look of the data:
+```{r echo=FALSE}
+alc <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt", sep=",", header=TRUE)
+```
+
+```{r echo=TRUE}
+dim(alc)
+colnames(alc)
+str(alc)
+summary(alc) 
+```
+
+The data consists of 382 observations and 35 variables.
+
+Overall visualisation of the data:
+```{r echo=FALSE}
+library(tidyr); library(dplyr); library(ggplot2)
+gather(alc) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar()
+
+```
+
+
+
+## Hypothesis
+
+From this data set I chose variables:  
+- absenses  
+- health  
+- failures  
+- reason
+
+1) Hypothesis of absences:
+H0: High absences are related to high alcohol consumption
+H1: More absences aren't related to high alcohol consumption
+
+2) Hypothesis of health:
+H0: Poor health is related to high alcohol consumption
+H1: Poor health isn't related to high alcohol consumption
+
+3) Hypothesis of failures:
+H0: More failures are related to high alcohol consumption
+H1: Failures aren't related to high alcohol consumption
+
+4) Hypothesis of activities:
+H0: No activities is related to high alcohol consumption
+H1: Activities are related to high alcohol consumption
+
+Absenses:
+I divided absences to logical type variable absences_high that is true if student have more than three absences (3.00 is the median value for absences).
+```{r echo=FALSE}
+
+alc <- mutate(alc, absences_high = absences > 3)
+alc %>% group_by(absences_high, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+
+g1 <- ggplot(alc, aes(x = high_use, y = G3, col = absences_high))
+
+# define the plot as a boxplot and draw it
+g1 + geom_boxplot() + ylab("absences_high")
+```
+
+Health:
+```{r echo=FALSE}
+
+alc <- mutate(alc, health_poor = health < 3)
+alc %>% group_by(health_poor, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+
+g1 <- ggplot(alc, aes(x = high_use, y = G3, col = health_poor))
+
+# define the plot as a boxplot and draw it
+g1 + geom_boxplot() + ylab("health_poor")
+```
+
+
+Failures:
+```{r echo=FALSE}
+
+alc <- mutate(alc, failures_high = failures > 1)
+alc %>% group_by(failures_high, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+
+g1 <- ggplot(alc, aes(x = high_use, y = G3, col = failures_high))
+
+# define the plot as a boxplot and draw it
+g1 + geom_boxplot() + ylab("failures_high")
+```
+
+Activities:
+```{r echo=FALSE}
+
+alc %>% group_by(activities, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+
+g1 <- ggplot(alc, aes(x = high_use, y = G3, col = activities))
+
+# define the plot as a boxplot and draw it
+g1 + geom_boxplot() + ylab("activities")
+```
+
+
+```{r echo=FALSE}
+m <- glm(high_use ~ failures_high + absences_high + activities + health_poor, data = alc, family = "binomial")
+
+# predict() the probability of high_use
+probabilities <- predict(m, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# call loss_func to compute the average number of wrong predictions in the (training) data
+loss_func(class = alc$high_use, prob = alc$probability)
+```
+
+```{r echo=FALSE}
+# define a loss function (average prediction error)
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# compute the average number of wrong predictions in the (training) data
+mean(loss_func(alc$high_use, alc$prediction))
+
+# K-fold cross-validation
+library(boot)
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
+?cv.glm
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
