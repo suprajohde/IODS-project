@@ -14,25 +14,21 @@ knitr::opts_chunk$set(echo = TRUE)
 Let's take a look of the data:
 ```{r echo=FALSE}
 alc <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt", sep=",", header=TRUE)
-```
 
-```{r echo=TRUE}
 dim(alc)
 colnames(alc)
 str(alc)
 summary(alc) 
 ```
 
-The data consists of 382 observations and 35 variables.
+The data consists of 382 observations and 35 variables. This dataset has been collected for analysing and data mining the alcohol consumption of secondary school students. Logical variable high_use has value TRUE if student average alcohol consumption is more than two. More information of the data and variables can be found from here: https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION .   
 
-Overall visualisation of the data:
+Overall visualisation of the data:  
 ```{r echo=FALSE}
 library(tidyr); library(dplyr); library(ggplot2)
 gather(alc) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar()
 
 ```
-
-
 
 ## Hypothesis
 
@@ -42,24 +38,24 @@ From this data set I chose variables:
 - failures  
 - reason
 
-1) Hypothesis of absences:
-H0: High absences are related to high alcohol consumption
-H1: More absences aren't related to high alcohol consumption
+1) Hypothesis of absences:  
+H0: High absences are related to high alcohol consumption  
+H1: More absences aren't related to high alcohol consumption  
 
-2) Hypothesis of health:
-H0: Poor health is related to high alcohol consumption
-H1: Poor health isn't related to high alcohol consumption
+2) Hypothesis of health:  
+H0: Poor health is related to high alcohol consumption  
+H1: Poor health isn't related to high alcohol consumption  
 
-3) Hypothesis of failures:
-H0: More failures are related to high alcohol consumption
-H1: Failures aren't related to high alcohol consumption
+3) Hypothesis of failures:  
+H0: More failures are related to high alcohol consumption  
+H1: Failures aren't related to high alcohol consumption  
 
-4) Hypothesis of activities:
-H0: No activities is related to high alcohol consumption
-H1: Activities are related to high alcohol consumption
+4) Hypothesis of activities:  
+H0: No activities is related to high alcohol consumption  
+H1: Activities are related to high alcohol consumption  
 
-Absenses:
-I divided absences to logical type variable absences_high that is true if student have more than three absences (3.00 is the median value for absences).
+Absenses:  
+I divided absences to logical type variable absences_high that is true if student have more than three absences (3.00 is the median value for absences).  
 ```{r echo=FALSE}
 
 alc <- mutate(alc, absences_high = absences > 3)
@@ -70,6 +66,8 @@ g1 <- ggplot(alc, aes(x = high_use, y = G3, col = absences_high))
 # define the plot as a boxplot and draw it
 g1 + geom_boxplot() + ylab("absences_high")
 ```
+    
+Students that had many absences and high alcohol consumption didn't succeeded in the final test so good compared to students that did have high alcohol consumption and less than three absences. Students that had high alcohol comsumption but were present at lectures the success in the final test was at the same level than the students that didn't consume so much alcohol.   
 
 Health:
 ```{r echo=FALSE}
@@ -82,7 +80,8 @@ g1 <- ggplot(alc, aes(x = high_use, y = G3, col = health_poor))
 # define the plot as a boxplot and draw it
 g1 + geom_boxplot() + ylab("health_poor")
 ```
-
+  
+Seems that poor health has very limited impact on course grades with or without high alcohol consumption.  
 
 Failures:
 ```{r echo=FALSE}
@@ -95,8 +94,10 @@ g1 <- ggplot(alc, aes(x = high_use, y = G3, col = failures_high))
 # define the plot as a boxplot and draw it
 g1 + geom_boxplot() + ylab("failures_high")
 ```
+  
+This is maybe the most interesting discovery in the data: those students that had more failures (=more than one) had tendency to use more alcohol althougth the variance for many failures and low alcohol consumption was wide.  
 
-Activities:
+Activities:  
 ```{r echo=FALSE}
 
 alc %>% group_by(activities, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
@@ -106,7 +107,8 @@ g1 <- ggplot(alc, aes(x = high_use, y = G3, col = activities))
 # define the plot as a boxplot and draw it
 g1 + geom_boxplot() + ylab("activities")
 ```
-
+  
+Activities didn't had any significant impact on alcohol usage and course grades.
 
 ```{r echo=FALSE}
 m <- glm(high_use ~ failures_high + absences_high + activities + health_poor, data = alc, family = "binomial")
@@ -131,6 +133,8 @@ loss_func <- function(class, prob) {
 # call loss_func to compute the average number of wrong predictions in the (training) data
 loss_func(class = alc$high_use, prob = alc$probability)
 ```
+  
+The average number of wrong predictions is 0.2774869.
 
 ```{r echo=FALSE}
 # define a loss function (average prediction error)
@@ -145,7 +149,9 @@ mean(loss_func(alc$high_use, alc$prediction))
 # K-fold cross-validation
 library(boot)
 cv <- cv.glm(data = alc, cost = loss_func, glmfit = m, K = 10)
-?cv.glm
+
 # average number of wrong predictions in the cross validation
 cv$delta[1]
 ```
+  
+10-fold cross-validation gave value 0.2827225 that is even bigger than the first average number of wrong predictions. Maybe it would have been better to use only logical or factor with two or three levels as an predictor.
