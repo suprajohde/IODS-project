@@ -87,32 +87,81 @@ cor(scaled)
 ```
 Variables have change so that variables with strongest crime correlations have even more stronger correlation. Weakest correlations haven't change so much.  
 
-Let's create categorical variable of crime rate. First we create quantile vector of crime and give following categories for it: "low", "med_low", "med_high", "high". After that I'll remove the original 
+Let's create categorical variable of crime rate. First we create quantile vector of crime and give following categories for it: "low", "med_low", "med_high", "high". After that I'll remove the original crime rate variable from the data set. Also I divide the data set to train and test sets.
 
 ```{r , echo=FALSE}
 
-scaled_crim <- scale(boston_scaled$crim)
+scaled <- as.data.frame(scaled)
+class(scaled)
+str(scaled)
+scaled_crim <- scale(scaled$crim)
 
-bins <- quantile(scaled_crim)
-bins
+q <- quantile(scaled_crim)
 
 # create a categorical variable 'crime'
-crime <- cut(scaled_crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high") )
+crime <- cut(scaled_crim, breaks = q, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high") )
 table(crime)
-# look at the table of the new factor crime
-crime
 
 # remove original crim from the dataset
-boston_scaled <- dplyr::select(boston_scaled, -crim)
+scaled <- dplyr::select(scaled, -crim)
+scaled <- data.frame(scaled, crime)
 
-# add the new categorical value to scaled data
-boston_scaled <- data.frame(boston_scaled, crime)
 
+
+n <- nrow(scaled)
+sample <- sample(n, size = n * 0.8)
+
+train <- scaled[sample,]
+test <- scaled[-sample,]
+correct_classes <- test$crime
+```
+
+Then I'll make the linear discriminant analysis on train set using categorical crime rate as target variable. This is the LDA (bi)plot:
+```{r , echo=FALSE}
+
+lda.fit <- lda(crime ~ ., data = train)
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+
+# plot the lda results
+plot(lda.fit, col = classes, pch= classes, dimen = 2)
+lda.arrows(lda.fit, myscale = 1)
 
 ```
 
+Now I remove crime categories from test and also the categorical crimevariable from test.
+
+```{r , echo=FALSE}
+test_crime <- scaled$crime
+test <- dplyr::select(test, -crime)
 
 
+lda.pred <- predict(lda.fit, newdata = test)
 
+# cross tabulate the results
+table(correct = correct_classes, predicted = lda.pred$class)
+```
+
+Save the crime categories from the test set and then remove the categorical crime variable from the test dataset. Then predict the classes with the LDA model on the test data. Cross tabulate the results with the crime categories from the test set. Comment on the results. (3 points)
+
+
+Reload the Boston dataset and standardize the dataset (we did not do this in the Datacamp exercises, but you should scale the variables to get comparable distances). Calculate the distances between the observations. Run k-means algorithm on the dataset. Investigate what is the optimal number of clusters and run the algorithm again. Visualize the clusters (for example with the pairs() or ggpairs() functions, where the clusters are separated with colors) and interpret the results. (4 points)
+
+
+Bonus: Perform k-means on the original Boston data with some reasonable number of clusters (> 2). Remember to standardize the dataset. Then perform LDA using the clusters as target classes. Include all the variables in the Boston data in the LDA model. Visualize the results with a biplot (include arrows representing the relationships of the original variables to the LDA solution). Interpret the results. Which variables are the most influencial linear separators for the clusters? (2 points to compensate any loss of points from previous exercises)
+
+Super-Bonus: Run the code below for the (scaled) train data that you used to fit the LDA. The code creates a matrix product, which is a projection of the data points.
 
 
