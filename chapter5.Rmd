@@ -1,0 +1,74 @@
+---
+title: "chapter5"
+author: "Tiina Autio"
+date: "2/24/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Analysis of human data
+
+This analysis focuses on health, knowledge and empowerment indicators from various countries.  
+
+```{r, echo=FALSE}
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", header = TRUE, sep = ",")
+
+str(human)
+glimpse(human)
+```
+Data set contains 155 observations and 8 variables:  
+- "GNI" = Gross National Income per capita  
+- "Life.Exp" = Life expectancy at birth  
+- "Edu.Exp" = Expected years of schooling   
+- "Mat.Mor" = Maternal mortality ratio  
+- "Ado.Birth" = Adolescent birth rate  
+- "Parli.F" = Percetange of female representatives in parliament  
+- "Edu2.F" = Proportion of females with at least secondary education  
+- "Edu2.M" = Proportion of males with at least secondary education  
+- "Labo.F" = Proportion of females in the labour force  
+- "Labo.M" " Proportion of males in the labour force  
+- "Edu2.FM" = Edu2.F / Edu2.M  
+- "Labo.FM" = Labo2.F / Labo2.M  
+
+Original data can be found here: http://hdr.undp.org/en/content/human-development-index-hdi  
+
+Summary of the data and some visualisations:
+```{r, echo=FALSE}
+summary(human)
+pairs(human)
+
+library(GGally)
+ggpairs(human)
+
+cor(human) %>% corrplot()
+```
+
+## Principal component analysis (PCA)
+
+First let's perform principal component analysis (PCA) to non-standardized data set. 
+```{r, echo=FALSE}
+pca_human <- prcomp(human)
+
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2,], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
+
+Then let's do the PCA again to standardized data set.
+```{r, echo=FALSE}
+human_std <- scale(human)
+
+summary(human_std)
+
+pca_human_std <- prcomp(human_std)
+
+s <- summary(pca_human_std)
+pca_pr <- round(100*s$importance[2,], digits = 1)
+pc_lab <- paste0(names(pca_human_std), " (", pca_pr, "%)")
+
+biplot(pca_human_std, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
